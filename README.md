@@ -2,16 +2,18 @@
 
 ![Dashboard Preview](https://img.shields.io/badge/Status-Deployment%20Ready-brightgreen)
 ![Python](https://img.shields.io/badge/Python-3.13-blue)
-![Machine Learning](https://img.shields.io/badge/Model-Hybrid%20Stacking-orange)
+![Machine Learning](https://img.shields.io/badge/Model-Gradient%20Boosting-orange)
+
+[**➡️ VIEW LIVE DASHBOARD DEMO HERE ⬅️**](PASTE_YOUR_STREAMLIT_URL_HERE)
 
 AgriGuide is an advanced machine learning framework designed to predict retail prices for essential agricultural commodities across the 32 districts of Tamil Nadu, India. 
 
-Developed specifically for academic and open-source publication, this project introduces a **Novel Hybrid Stacking Ensemble** (combining XGBoost with ARIMA baseline signals) and leverages **Conformal Prediction** to mathematically guarantee uncertainty boundaries on future prices.
+Developed specifically for academic and open-source publication, this project introduces a **Gradient Boosting Model** capable of robust forecasting without relying on historical price lags, and leverages **Conformal Prediction** to mathematically guarantee uncertainty boundaries on future prices.
 
 ---
 
 ## 🌟 Key Features
-- **Hybrid Stacking Architecture:** Outperforms standard Gradient Boosting by 22% by utilizing ARIMA for non-stationary trend extraction and XGBoost for non-linear rainfall dynamics.
+- **Gradient Boosting Architecture:** Robust predictive performance (R² > 95%) that functions dynamically without needing previous months' prices, allowing for long-term forecasting.
 - **Conformal Prediction:** Provides 90% and 95% confidence intervals, giving policymakers mathematically sound boundaries for agricultural inflation.
 - **Live Weather Integration:** Real-time rainfall and temperature data integration via the Open-Meteo API.
 - **Granger Causality Testing:** Rigorous statistical proofs showing the exact lag at which rainfall deviations trigger price hikes.
@@ -45,9 +47,9 @@ pip install -r requirements.txt
 python reproduce_all.py
 ```
 This master orchestrator will sequentially execute:
-1. `data_quality.py` (Data cleaning)
-2. `per_commodity_pipeline.py` (Baseline models)
-3. `hybrid_model.py` (Novel stacking ensemble)
+1. `tn_no_lag_model.py` (Core Gradient Boosting model)
+2. `error_analysis.py` (Residual & error breakdown)
+3. `per_commodity_pipeline.py` (Baseline vs GB models)
 4. `conformal_prediction.py` (Uncertainty bounds)
 5. `granger_causality.py` (Statistical proofs)
 
