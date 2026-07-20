@@ -144,8 +144,8 @@ def load_agri_data() -> pd.DataFrame:
         pd.DataFrame: Filtered census data for Tamil Nadu.
     """
     try:
-        df = pd.read_csv(PROJECT_ROOT / "data" / "raw" / "district-level-agcensus-crop.csv")
-        return df[df["state_name"] == "Tamil Nadu"]
+        df = pd.read_csv(PROJECT_ROOT / "data" / "tamil_nadu" / "tn_agriculture_census.csv")
+        return df
     except FileNotFoundError:
         return pd.DataFrame(columns=["state_name", "district_name", "crop_name", "total_ar_district", "irr_ar_district"])
 
@@ -245,10 +245,6 @@ def predict_price(
 
 # ─── Sidebar ─────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.image(
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Flag_of_Tamil_Nadu.svg/320px-Flag_of_Tamil_Nadu.svg.png",
-        width=120,
-    )
     st.title("🌾 TN Agri Predictor")
     st.markdown("---")
 
