@@ -21,6 +21,12 @@ Thumbs.db
 # VS Code
 .vscode/
 
+# Linter cache
+.ruff_cache/
+
+# Agent config
+.agents/
+
 # Ignore large model files and raw datasets (Best practice for GitHub)
 data/raw/*
 data/processed/*

@@ -57,9 +57,9 @@ def main() -> None:
     logging.info("STARTING COMPLETE REPRODUCIBILITY PIPELINE...")
 
     scripts: List[str] = [
+        "02_modeling/tn_no_lag_model.py",
         "03_evaluation/error_analysis.py",
         "02_modeling/per_commodity_pipeline.py",
-        "02_modeling/hybrid_model.py",
         "03_evaluation/conformal_prediction.py",
         "03_evaluation/granger_causality.py",
         "03_evaluation/generate_paper_tables.py",
