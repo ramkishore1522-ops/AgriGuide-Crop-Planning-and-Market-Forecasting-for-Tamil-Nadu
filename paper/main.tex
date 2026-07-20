@@ -53,13 +53,13 @@ Machine Learning, Agricultural Economics, Time Series Forecasting, Conformal Pre
 \label{sec:introduction}
 Agricultural markets are inherently volatile, driven by complex interactions between supply, demand, and increasingly, climate change. Extreme weather events such as droughts and excess monsoons directly disrupt crop yields, leading to severe price fluctuations. Accurate price forecasting is therefore critical for farmers to optimize harvesting strategies and for policymakers to ensure food security.
 
-Traditional time-series models like Autoregressive Integrated Moving Average (ARIMA) effectively capture linear trends and seasonality but fail to account for exogenous shocks and non-linear climate interactions. Conversely, modern machine learning algorithms such as Random Forests and XGBoost excel at non-linear mappings but often struggle with long-term extrapolation of non-stationary trends. 
+Traditional time-series models like Autoregressive Integrated Moving Average (ARIMA) \cite{box1970time} effectively capture linear trends and seasonality but fail to account for exogenous shocks and non-linear climate interactions. Conversely, modern machine learning algorithms such as Random Forests \cite{breiman2001random} and XGBoost \cite{chen2016xgboost} excel at non-linear mappings but often struggle with long-term extrapolation of non-stationary trends. 
 
 In this paper, we address these limitations through three primary contributions:
 \begin{enumerate}
     \item \textbf{Hybrid Stacking Ensemble:} We introduce a two-level stacking architecture. Level 1 employs per-commodity ARIMA models to capture linear temporal dynamics. Level 2 utilizes an XGBoost meta-learner to integrate the ARIMA forecasts with lagged price features and climate variables (e.g., rainfall deviation).
-    \item \textbf{Uncertainty Quantification:} We apply split conformal prediction to generate statistically guaranteed, distribution-free prediction intervals. This shifts the paradigm from simple point-forecasting to risk-aware decision support.
-    \item \textbf{Empirical Causal Analysis:} We employ Granger causality testing to systematically validate the lagged temporal impact of extreme rainfall on specific commodity categories.
+    \item \textbf{Uncertainty Quantification:} We apply split conformal prediction \cite{vovk2005algorithmic} to generate statistically guaranteed, distribution-free prediction intervals. This shifts the paradigm from simple point-forecasting to risk-aware decision support.
+    \item \textbf{Empirical Causal Analysis:} We employ Granger causality testing \cite{granger1969investigating} to systematically validate the lagged temporal impact of extreme rainfall on specific commodity categories.
 \end{enumerate}
 
 \section{Methodology}
@@ -77,7 +77,7 @@ In Level 1, we fit an ARIMA($p,d,q$) model for each commodity to generate a tren
 In Level 2, an XGBoost meta-learner is trained to map the augmented feature space $Z_{c,t} = [X_{c,t}, y_{c,t-1}, y_{c,t-2}, y_{c,t-3}, \hat{y}_{c,t}^{ARIMA}]$ to the target $y_{c,t}$.
 
 \subsection{Conformal Prediction}
-To quantify uncertainty, we utilize split conformal prediction. The dataset is partitioned chronologically into training ($D_{train}$), calibration ($D_{cal}$), and testing ($D_{test}$) sets. We compute non-conformity scores $s_i = |y_i - \hat{y}_i|$ for all $i \in D_{cal}$. For a desired confidence level $1-\alpha$, we calculate the $\lceil (n_{cal}+1)(1-\alpha) \rceil / n_{cal}$ empirical quantile of $s$, denoted as $\hat{q}$. The prediction interval for a new test point is simply $[\hat{y}_{test} - \hat{q}, \hat{y}_{test} + \hat{q}]$.
+To quantify uncertainty, we utilize split conformal prediction \cite{vovk2005algorithmic}. The dataset is partitioned chronologically into training ($D_{train}$), calibration ($D_{cal}$), and testing ($D_{test}$) sets. We compute non-conformity scores $s_i = |y_i - \hat{y}_i|$ for all $i \in D_{cal}$. For a desired confidence level $1-\alpha$, we calculate the $\lceil (n_{cal}+1)(1-\alpha) \rceil / n_{cal}$ empirical quantile of $s$, denoted as $\hat{q}$. The prediction interval for a new test point is simply $[\hat{y}_{test} - \hat{q}, \hat{y}_{test} + \hat{q}]$.
 
 \section{Results and Discussion}
 \label{sec:results}
@@ -129,7 +129,7 @@ Wheat & Random Forest & -9.59 & 10.76 & 2.73 & 2.48 & 6.37 \\
 \end{table}
 
 \subsection{Causal Analysis of Climate Impact}
-Granger causality tests revealed distinct vulnerabilities across commodity types. Highly perishable vegetables (Tomato, Onion, Potato) exhibited statistically significant ($p < 0.05$) lagged causal relationships with rainfall deviation. Conversely, staples (Rice, Wheat) showed no significant Granger causality from climate variables, likely due to massive storage infrastructures and government interventions like Minimum Support Prices (MSP) that buffer climate shocks.
+Granger causality tests \cite{granger1969investigating} revealed distinct vulnerabilities across commodity types. Highly perishable vegetables (Tomato, Onion, Potato) exhibited statistically significant ($p < 0.05$) lagged causal relationships with rainfall deviation. Conversely, staples (Rice, Wheat) showed no significant Granger causality from climate variables, likely due to massive storage infrastructures and government interventions like Minimum Support Prices (MSP) that buffer climate shocks.
 
 % Significant Granger Causality Results (p < 0.05)
 \begin{table}[htbp]
