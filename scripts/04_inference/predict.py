@@ -14,8 +14,10 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="repla
 # Load model
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 model_data = joblib.load(PROJECT_ROOT / "models" / "tn_no_lag_model.joblib")
-model = model_data["model"]
-le_commodity = model_data["le_commodity"]
+model_gb = model_data.get("model_gb")
+model_ridge = model_data.get("model_ridge")
+scaler = model_data.get("scaler")
+le_commodity = model_data.get("le_commodity")
 
 # All 32 Tamil Nadu Districts
 TN_CITIES = {
@@ -206,7 +208,13 @@ def predict(commodity, city_name, lat, lon, month, year):
         ]
     ]
 
-    price = model.predict(features)[0]
+    features_scaled = scaler.transform(features)
+    
+    if model_gb and model_ridge:
+        price = 0.5 * model_gb.predict(features)[0] + 0.5 * model_ridge.predict(features_scaled)[0]
+    else:
+        # Fallback if old model is loaded
+        price = model_gb.predict(features)[0]
 
     season_names = ["Monsoon", "Post-monsoon", "Winter", "Summer"]
 

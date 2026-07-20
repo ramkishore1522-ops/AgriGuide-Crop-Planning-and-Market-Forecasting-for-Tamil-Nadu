@@ -206,8 +206,10 @@ def predict_price(
     Returns:
         Optional[float]: The predicted price per kg, or None if the commodity is invalid.
     """
-    model = model_data["model"]
-    le = model_data["le_commodity"]
+    model_gb = model_data.get("model_gb")
+    model_ridge = model_data.get("model_ridge")
+    scaler = model_data.get("scaler")
+    le = model_data.get("le_commodity")
 
     if commodity not in le.classes_:
         return None
@@ -240,7 +242,11 @@ def predict_price(
             cat,
         ]
     ]
-    return model.predict(features)[0]
+    features_scaled = scaler.transform(features)
+    if model_gb and model_ridge:
+        return 0.5 * model_gb.predict(features)[0] + 0.5 * model_ridge.predict(features_scaled)[0]
+    else:
+        return model_gb.predict(features)[0]
 
 
 # ─── Sidebar ─────────────────────────────────────────────────────────────────

@@ -703,14 +703,11 @@ def train_models(df, features):
 
     results_df = pd.DataFrame(results).sort_values("R2", ascending=False)
 
-    # Best model
-    best_name = results_df.iloc[0]["Model"]
-    best_r2 = results_df.iloc[0]["R2"]
-    best_model = models[best_name][0]
+    # Force export of Ridge and GB for Hybrid deployment
+    gb_model = models["Gradient Boosting"][0]
+    ridge_model = models["Ridge Regression"][0]
 
-    print(f"\n  BEST MODEL: {best_name} (R2={best_r2:.4f})")
-
-    return results_df, best_model, scaler, X_test, y_test
+    return results_df, gb_model, ridge_model, scaler, X_test, y_test
 
 
 def analyze_feature_importance(model, features):
@@ -824,7 +821,7 @@ def main():
     df, features, le_commodity = create_features(merged)
 
     # Train
-    results_df, best_model, scaler, X_test, y_test = train_models(df, features)
+    results_df, gb_model, ridge_model, scaler, X_test, y_test = train_models(df, features)
 
     # Advanced evaluation
     time_series_summary, _ = evaluate_baselines(df, features)
@@ -832,7 +829,7 @@ def main():
     optional_baselines = evaluate_optional_baselines(df, features)
 
     # Feature importance
-    importance = analyze_feature_importance(best_model, features)
+    importance = analyze_feature_importance(gb_model, features)
 
     # Compare
     compare_with_lag_model()
@@ -846,7 +843,8 @@ def main():
     model_path = MODELS_DIR / "tn_no_lag_model.joblib"
     joblib.dump(
         {
-            "model": best_model,
+            "model_gb": gb_model,
+            "model_ridge": ridge_model,
             "scaler": scaler,
             "le_commodity": le_commodity,
             "features": features,
