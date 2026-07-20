@@ -4,7 +4,7 @@
 ![Python](https://img.shields.io/badge/Python-3.13-blue)
 ![Machine Learning](https://img.shields.io/badge/Model-Gradient%20Boosting-orange)
 
-[**➡️ VIEW LIVE DASHBOARD DEMO HERE ⬅️**]([(https://agriguide-crop-planning-and-market-forecasting-for-tamil-nadu.streamlit.app/)]))
+[**➡️ VIEW LIVE DASHBOARD DEMO HERE ⬅️**]([https://agriguide-crop-planning-and-market-forecasting-for-tamil-nadu.streamlit.app/]))
 
 AgriGuide is an advanced machine learning framework designed to predict retail prices for essential agricultural commodities across the 32 districts of Tamil Nadu, India. 
 
