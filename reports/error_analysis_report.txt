@@ -1,0 +1,69 @@
+======================================================================
+ERROR ANALYSIS REPORT (Publication Quality)
+======================================================================
+
+
+## 1. ERROR BY COMMODITY
+--------------------------------------------------
+              MAE    MAPE    RMSE  Mean_Residual  Std_Residual   N
+commodity                                                         
+Milk        3.826   8.256   4.271          3.826         1.950  19
+Onion       5.892  15.926   8.304          2.660         8.082  19
+Potato      5.519  13.801   7.383          2.790         7.023  19
+Rice        6.950  11.811   7.967          6.950         4.001  19
+Sugar       2.574   6.009   2.847          2.315         1.702  19
+Tomato     11.654  27.899  19.939          5.956        19.551  19
+Wheat       4.500  10.173   4.590          4.500         0.932  19
+
+  Hardest to predict: Tomato (MAPE=27.9%)
+  Easiest to predict: Sugar (MAPE=6.0%)
+
+
+## 2. ERROR BY SEASON
+--------------------------------------------------
+                MAE    MAPE    RMSE   N
+season                                 
+Monsoon       7.680  14.442  13.523  49
+Post-Monsoon  5.409  14.770   7.000  14
+Summer        4.618  12.843   5.957  42
+Winter        4.692  11.778   5.575  28
+
+
+## 3. ERROR BY YEAR
+--------------------------------------------------
+        MAE    MAPE   N
+year                   
+2023  5.061  11.864  77
+2024  6.923  15.538  56
+
+
+## 4. ERROR DURING EXTREME WEATHER
+--------------------------------------------------
+
+  Drought (<P25): N=28, MAE=6.63, MAPE=14.5%
+
+  Normal (P25-P75): N=77, MAE=6.36, MAPE=13.8%
+
+  Excess Rain (>P75): N=28, MAE=3.65, MAPE=11.4%
+
+
+## 5. RESIDUAL NORMALITY (Shapiro-Wilk)
+--------------------------------------------------
+  Rice      : W=0.8831, p=0.0243 → Non-normal
+  Wheat     : W=0.8989, p=0.0464 → Non-normal
+  Onion     : W=0.9229, p=0.1279 → Normal
+  Tomato    : W=0.7181, p=0.0001 → Non-normal
+  Potato    : W=0.8610, p=0.0102 → Non-normal
+  Sugar     : W=0.9368, p=0.2306 → Normal
+  Milk      : W=0.8833, p=0.0245 → Non-normal
+
+
+## 6. PREDICTION BIAS (One-sample t-test on residuals)
+--------------------------------------------------
+  Rice      : mean_resid=+6.95, t=7.57, p=0.0000 → BIASED
+  Wheat     : mean_resid=+4.50, t=21.04, p=0.0000 → BIASED
+  Onion     : mean_resid=+2.66, t=1.43, p=0.1686 → Unbiased
+  Tomato    : mean_resid=+5.96, t=1.33, p=0.2008 → Unbiased
+  Potato    : mean_resid=+2.79, t=1.73, p=0.1004 → Unbiased
+  Sugar     : mean_resid=+2.32, t=5.93, p=0.0000 → BIASED
+  Milk      : mean_resid=+3.83, t=8.55, p=0.0000 → BIASED

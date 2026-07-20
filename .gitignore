@@ -1,0 +1,29 @@
+# Virtual Environments
+venv/
+.venv/
+.venv313/
+.env/
+env/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Ignore large model files and raw datasets (Best practice for GitHub)
+models/
+data/raw/
+data/processed/
+data/quality_checked/
+data/intermediate/
