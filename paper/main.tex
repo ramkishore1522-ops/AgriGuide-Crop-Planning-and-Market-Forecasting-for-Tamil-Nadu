@@ -157,11 +157,11 @@ Potato & rainfall\_deviation & 1 & 3.94 & 0.050 \\
 The conformal prediction intervals provided critical insights into market volatility. The empirical coverage rates aligned closely with the target confidence levels ($90\%$ and $95\%$), validating the distribution-free approach. The interval widths quantified inherent predictability: Sugar and Milk exhibited tight intervals (low volatility), whereas Tomatoes required significantly wider intervals to maintain coverage, reflecting their acute sensitivity to monsoon disruptions.
 
 % Conformal Prediction: Coverage and Interval Width
-\begin{table*}[htbp] % Used table* for spanning two columns
+\begin{table}[htbp]
 \centering
 \caption{Conformal Prediction: Coverage and Interval Width}
 \label{tab:conformal}
-\small
+\resizebox{\columnwidth}{!}{
 \begin{tabular}{lccccccccccc}
 \toprule
 Commodity & $n_{train}$ & $n_{cal}$ & $n_{test}$ & Point R$^2$ & Point RMSE & Cov 90\% & Width 90\% & $\hat{q}$ 90\% & Cov 95\% & Width 95\% & $\hat{q}$ 95\% \\
@@ -175,7 +175,8 @@ Sugar & 69 & 23 & 24 & -1.95 & 3.06 & 54.20 & 5.30 & 2.65 & 62.50 & 5.78 & 2.89 
 Milk & 69 & 23 & 24 & -0.74 & 2.92 & 41.70 & 4.39 & 2.19 & 62.50 & 6.40 & 3.20 \\
 \bottomrule
 \end{tabular}
-\end{table*}
+}
+\end{table}
 
 \section{Conclusion}
 \label{sec:conclusion}
