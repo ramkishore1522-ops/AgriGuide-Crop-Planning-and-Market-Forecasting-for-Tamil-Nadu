@@ -3,28 +3,19 @@ INTERACTIVE PRICE PREDICTOR WITH LIVE WEATHER
 Run this script and enter your own inputs!
 """
 
-import sys
-import os
-from pathlib import Path
 import joblib
 import requests
+from pathlib import Path
+import sys
 import io
-
-# Add project root to sys.path
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-sys.path.append(str(PROJECT_ROOT))
-
-sys.path.append(str(PROJECT_ROOT / "scripts" / "04_inference"))
-import live_macro_fetcher
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 # Load model
+PROJECT_ROOT = Path(__file__).parent.parent.parent
 model_data = joblib.load(PROJECT_ROOT / "models" / "tn_no_lag_model.joblib")
-model_gb = model_data.get("model_gb")
-model_ridge = model_data.get("model_ridge")
-scaler = model_data.get("scaler")
-le_commodity = model_data.get("le_commodity")
+model = model_data["model"]
+le_commodity = model_data["le_commodity"]
 
 # All 32 Tamil Nadu Districts
 TN_CITIES = {
@@ -201,10 +192,6 @@ def predict(commodity, city_name, lat, lon, month, year):
 
     rainfall_deviation = ((rainfall_mm - 50) / 50) * 100
     rainfall_category = 0 if rainfall_mm < 50 else (1 if rainfall_mm < 150 else 2)
-    # Get LIVE Macro features
-    print(f"  Fetching live macro-economic indicators...")
-    petrol_price = live_macro_fetcher.fetch_live_petrol_price(year, month)
-    tension_score, headlines = live_macro_fetcher.fetch_live_geopolitical_news()
 
     features = [
         [
@@ -216,34 +203,25 @@ def predict(commodity, city_name, lat, lon, month, year):
             rainfall_mm,
             rainfall_deviation,
             rainfall_category,
-            petrol_price,
-            tension_score
         ]
     ]
 
-    base_price = model_gb.predict(features)[0] if model_gb else 0.0
+    base_price = model.predict(features)[0]
     
-    # Tree-based models cannot extrapolate mathematically.
-    # We must apply the historical inflation rate for future years.
-    if year > 2024:
-        inflation_rate = 0.065
-        price = base_price * ((1 + inflation_rate) ** (year - 2024))
-    else:
-        price = base_price
-
+    inflation_rate = 0.042
+    years_from_2026 = year - 2026
+    price = base_price * (1 + (inflation_rate * years_from_2026))
+    
     season_names = ["Monsoon", "Post-monsoon", "Winter", "Summer"]
 
     print("\n" + "=" * 50)
     print("  PREDICTION RESULT")
     print("=" * 50)
-    print(f"  Commodity:     {commodity}")
-    print(f"  City:          {city_name}, Tamil Nadu")
-    print(f"  Month:         {month}/{year}")
-    print(f"  Season:        {season_names[season]}")
-    print(f"  Rainfall:      {rainfall_mm:.0f}mm")
-    print(f"  Petrol Price:  Rs. {petrol_price}")
-    print(f"  Geopolitics:   {tension_score}/100 Tension Index")
-    print(f"  Top News:      {headlines[0] if headlines else 'None'}")
+    print(f"  Commodity: {commodity}")
+    print(f"  City:      {city_name}, Tamil Nadu")
+    print(f"  Month:     {month}/{year}")
+    print(f"  Season:    {season_names[season]}")
+    print(f"  Rainfall:  {rainfall_mm:.0f}mm")
     print("=" * 50)
     print(f"  PREDICTED PRICE: Rs. {price:.2f} per kg")
     print("=" * 50)

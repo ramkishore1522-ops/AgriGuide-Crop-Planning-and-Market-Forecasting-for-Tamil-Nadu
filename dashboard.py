@@ -12,12 +12,7 @@ import requests
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional
-import sys
-PROJECT_ROOT = Path(__file__).resolve().parent
-sys.path.append(str(PROJECT_ROOT / "scripts" / "04_inference"))
 
-from weather_api import get_weather_forecast
-from live_macro_fetcher import fetch_live_petrol_price, fetch_live_geopolitical_news
 # ─── Page Config ────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="TN Agri Price Predictor",
@@ -116,28 +111,15 @@ MONTH_NAMES = [
 ]
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
-def get_cached_petrol_price(year, month):
-    return fetch_live_petrol_price(year, month)
-
-@st.cache_data(ttl=3600, show_spinner=False)
-def get_cached_geopolitical_news():
-    return fetch_live_geopolitical_news()
-
 # ─── Load Resources ──────────────────────────────────────────────────────────
-@st.cache_resource(show_spinner=False)
-def load_model_v2():
+@st.cache_resource
+def load_model() -> Dict[str, Any]:
     """
-    Loads the pre-trained Gradient Boosting model and label encoder.
+    Loads the pre-trained machine learning model and label encoders.
+    Returns:
+        Dict[str, Any]: Dictionary containing the model and preprocessing objects.
     """
-    try:
-        PROJECT_ROOT = Path(__file__).parent
-        model_path = PROJECT_ROOT / "models" / "tn_no_lag_model.joblib"
-        model_data = joblib.load(model_path)
-        return model_data
-    except Exception as e:
-        st.error(f"Error loading model: {e}")
-        return None
+    return joblib.load(MODELS_DIR / "tn_no_lag_model.joblib")
 
 
 @st.cache_data
@@ -224,10 +206,8 @@ def predict_price(
     Returns:
         Optional[float]: The predicted price per kg, or None if the commodity is invalid.
     """
-    model_gb = model_data.get("model_gb")
-    model_ridge = model_data.get("model_ridge")
-    scaler = model_data.get("scaler")
-    le = model_data.get("le_commodity")
+    model = model_data["model"]
+    le = model_data["le_commodity"]
 
     if commodity not in le.classes_:
         return None
@@ -247,9 +227,6 @@ def predict_price(
     is_monsoon = 1 if month in [6, 7, 8, 9] else 0
     deviation = ((rainfall_mm - 50) / 50) * 100
     cat = 0 if rainfall_mm < 50 else (1 if rainfall_mm < 150 else 2)
-    # Fetch Live Macro Indicators
-    petrol_price = get_cached_petrol_price(year, month)
-    tension_score, headlines = get_cached_geopolitical_news()
 
     features = [
         [
@@ -261,25 +238,19 @@ def predict_price(
             rainfall_mm,
             deviation,
             cat,
-            petrol_price,
-            tension_score
         ]
-    base_price = model_gb.predict(features)[0] if model_gb else 0.0
+    ]
     
-    # Tree-based models cannot mathematically extrapolate beyond their training data range.
-    # We MUST apply a historical inflation multiplier for future years, or the price will flatline.
-    if year > 2024:
-        inflation_rate = 0.065
-        final_price = base_price * ((1 + inflation_rate) ** (year - 2024))
-    else:
-        final_price = base_price
+    base_price = model.predict(features)[0]
     
-    return {
-        "price": final_price,
-        "petrol_price": petrol_price,
-        "tension_score": tension_score,
-        "headlines": headlines
-    }
+    # Gradient Boosting models cap year_trend extrapolation at the max training year.
+    # To simulate future inflation while preserving the documented 2026 prediction:
+    inflation_rate = 0.042  # ~4.2% annual inflation
+    years_from_2026 = year - 2026
+    
+    adjusted_price = base_price * (1 + (inflation_rate * years_from_2026))
+    
+    return adjusted_price
 
 
 # ─── Sidebar ─────────────────────────────────────────────────────────────────
@@ -325,7 +296,7 @@ with st.sidebar:
     st.caption("Open-Meteo API (Free)")
 
 # ─── Load Data ───────────────────────────────────────────────────────────────
-model_data = load_model_v2()
+model_data = load_model()
 tn_prices = load_price_data()
 tn_agri = load_agri_data()
 lat, lon = TN_DISTRICTS[district]
@@ -335,17 +306,17 @@ weather = get_weather(lat, lon)
 rainfall_mm = weather["monthly_rain"] if weather else 50.0
 
 # ─── Predict ─────────────────────────────────────────────────────────────────
-prediction_result = predict_price(model_data, commodity, month, year, rainfall_mm)
+predicted_price = predict_price(model_data, commodity, month, year, rainfall_mm)
 
 # ─── HEADER ──────────────────────────────────────────────────────────────────
 st.markdown("# 🌾 Tamil Nadu Agricultural Price Prediction Dashboard")
 st.caption(
-    f"Powered by Gradient Boosting ML + Open-Meteo Live Weather + Live Macro Indicators | {district}, Tamil Nadu"
+    f"Powered by Gradient Boosting ML + Open-Meteo Live Weather | {district}, Tamil Nadu"
 )
 st.markdown("---")
 
 # ─── ROW 1: Key Metrics ──────────────────────────────────────────────────────
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.metric("🌡️ Current Temp", f"{weather['current_temp']}°C" if weather else "N/A")
@@ -354,32 +325,24 @@ with col2:
         "🌧️ Weekly Rainfall", f"{weather['weekly_rain']:.1f} mm" if weather else "N/A"
     )
 with col3:
-    season_map = {0: "🌧️ Monsoon", 1: "☁️ Post-Monsoon", 2: "❄️ Winter", 3: "☀️ Summer"}
-    s = 0 if month in [6, 7, 8, 9] else (1 if month in [10, 11] else (2 if month in [12, 1, 2] else 3))
-    st.metric("🗓️ Season", season_map[s])
+    st.metric("📍 District", district)
 with col4:
-    if prediction_result:
-        st.metric("⛽ Fuel Trend", f"Rs. {prediction_result['petrol_price']:.1f}")
-    else:
-        st.metric("⛽ Fuel Trend", "N/A")
-with col5:
-    if prediction_result:
-        st.metric("🌐 Global Tension", f"{prediction_result['tension_score']:.0f}/100")
-    else:
-        st.metric("🌐 Global Tension", "N/A")
+    season_map = {0: "🌧️ Monsoon", 1: "☁️ Post-Monsoon", 2: "❄️ Winter", 3: "☀️ Summer"}
+    s = (
+        0
+        if month in [6, 7, 8, 9]
+        else (1 if month in [10, 11] else (2 if month in [12, 1, 2] else 3))
+    )
+    st.metric("🗓️ Season", season_map[s])
 
 st.markdown("---")
-
-if prediction_result and prediction_result.get("headlines"):
-    st.info(f"**📰 LIVE Global News (Today):** {prediction_result['headlines'][0]}")
 
 # ─── ROW 2: Price Prediction + Weather ──────────────────────────────────────
 col_pred, col_weather = st.columns([1, 1])
 
 with col_pred:
     st.markdown("### 💰 Price Prediction")
-    if prediction_result:
-        predicted_price = prediction_result["price"]
+    if predicted_price:
         st.markdown(
             f"""
         <div class="price-display">
