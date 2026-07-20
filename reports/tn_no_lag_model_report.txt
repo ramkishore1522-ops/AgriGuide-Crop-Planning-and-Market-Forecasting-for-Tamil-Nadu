@@ -1,0 +1,68 @@
+============================================================
+TAMIL NADU PRICE PREDICTION - NO LAG MODEL
+============================================================
+
+
+## APPROACH
+This model predicts prices WITHOUT using previous month prices.
+Instead, it uses:
+- Rainfall data
+- Season/Month
+- Commodity type
+- Year trend
+- Additional ablation analysis for feature contribution
+
+
+## MODEL PERFORMANCE
+            Model   MAE  RMSE  MAPE     R2   CV_R2
+    Random Forest 12.02 16.61 11.96 0.9386  0.9329
+Gradient Boosting 11.59 16.97 11.97 0.9360  0.9259
+Linear Regression 50.25 66.67 74.59 0.0111 -0.0168
+ Ridge Regression 50.25 66.68 74.56 0.0110 -0.0165
+
+
+## TIME-SERIES VALIDATION SUMMARY
+            Model  MAE_mean  MAE_std  MAE_ci95  RMSE_mean  RMSE_std  RMSE_ci95  MAPE_mean  MAPE_std  MAPE_ci95  R2_mean  R2_std  R2_ci95
+Gradient Boosting   11.0295   2.3699    1.8963    16.9361    3.8951     3.1167    12.9502    2.5020     2.0020   0.9205  0.0257   0.0206
+  Hybrid Ensemble   26.3942   4.5259    3.6215    34.7613    5.7514     4.6021    41.5044    4.3255     3.4611   0.6688  0.0487   0.0390
+Linear Regression   46.8486   7.1989    5.7603    60.9192    8.6679     6.9357    78.0863    6.1295     4.9047  -0.0153  0.0240   0.0192
+       Naive Mean   47.4551   7.3208    5.8579    62.4087   10.0706     8.0582    72.5271    5.6252     4.5011  -0.0602  0.0356   0.0285
+    Random Forest   10.8293   2.2410    1.7931    16.4851    3.8942     3.1160    12.5260    1.8883     1.5109   0.9247  0.0248   0.0198
+ Ridge Regression   46.8475   7.2043    5.7646    60.9089    8.6825     6.9475    78.1301    6.0769     4.8625  -0.0149  0.0235   0.0188
+
+
+## ABLATION STUDY
+                         Ablation        Best_Model             Model  MAE_mean  MAE_std  MAE_ci95  RMSE_mean  RMSE_std  RMSE_ci95  MAPE_mean  MAPE_std  MAPE_ci95  R2_mean  R2_std  R2_ci95
+                     climate_only Gradient Boosting Gradient Boosting   47.5070   7.4828    5.9875    60.8237    8.8226     7.0596    80.6076    7.8798     6.3051  -0.0113  0.0095   0.0076
+                   commodity_only     Random Forest     Random Forest   15.6191   5.5634    4.4517    22.8518    8.6870     6.9511    16.4810    3.0161     2.4134   0.8571  0.0705   0.0564
+         climate_plus_seasonality Gradient Boosting Gradient Boosting   10.2252   2.2117    1.7697    15.6196    3.8175     3.0546    11.8676    2.0329     1.6266   0.9312  0.0270   0.0216
+climate_plus_lag_plus_seasonality Linear Regression Linear Regression    2.5127   0.2515    0.2012     4.7209    0.8180     0.6545     4.1590    0.6295     0.5037   0.9932  0.0033   0.0026
+
+
+## OPTIONAL BASELINE COMPARISON
+  Model  MAE_mean  RMSE_mean  MAPE_mean   R2_mean
+  ARIMA   10.5191    12.8719    19.7787  -13.1548
+Prophet    5.5780     5.9671     6.4127 -206.9753
+   LSTM   11.6872    12.4600    12.2292 -158.5058
+
+
+## FEATURE IMPORTANCE
+             Feature  Importance
+   commodity_encoded    0.925133
+        petrol_price    0.045050
+          year_trend    0.022046
+         rainfall_mm    0.002841
+               month    0.002181
+geopolitical_tension    0.001441
+  rainfall_deviation    0.000978
+              season    0.000212
+          is_monsoon    0.000081
+   rainfall_category    0.000037
+
+
+## USE CASE
+This model is suitable for:
+- Predicting FUTURE prices (before the month ends)
+- Seasonal planning
+- Rainfall impact analysis
+- Rigorous comparison across time-series validation schemes

@@ -67,8 +67,12 @@ def load_and_prepare_data():
     tn_prices["month"] = tn_prices["date"].dt.month
 
     price_monthly = (
-        tn_prices.groupby(["commodity", "year", "month"])
-        .agg({"price": "mean"})
+        tn_prices.groupby(["year", "month", "commodity"])
+        .agg({
+            "price": "mean",
+            "petrol_price": "first",
+            "geopolitical_tension": "first"
+        })
         .reset_index()
     )
     print(f"  Monthly price records: {len(price_monthly):,}")
@@ -164,6 +168,8 @@ def create_features(df):
         "rainfall_mm",
         "rainfall_deviation",
         "rainfall_category",
+        "petrol_price",
+        "geopolitical_tension"
     ]
 
     print("\n  Features used (NO PREVIOUS PRICE!):")

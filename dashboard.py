@@ -12,7 +12,12 @@ import requests
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional
+import sys
+PROJECT_ROOT = Path(__file__).resolve().parent
+sys.path.append(str(PROJECT_ROOT / "scripts" / "04_inference"))
 
+from weather_api import get_weather_forecast
+from live_macro_fetcher import fetch_live_petrol_price, fetch_live_geopolitical_news
 # ─── Page Config ────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="TN Agri Price Predictor",
@@ -110,6 +115,14 @@ MONTH_NAMES = [
     "Dec",
 ]
 
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_cached_petrol_price(year, month):
+    return fetch_live_petrol_price(year, month)
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_cached_geopolitical_news():
+    return fetch_live_geopolitical_news()
 
 # ─── Load Resources ──────────────────────────────────────────────────────────
 @st.cache_resource(show_spinner=False)
@@ -234,6 +247,9 @@ def predict_price(
     is_monsoon = 1 if month in [6, 7, 8, 9] else 0
     deviation = ((rainfall_mm - 50) / 50) * 100
     cat = 0 if rainfall_mm < 50 else (1 if rainfall_mm < 150 else 2)
+    # Fetch Live Macro Indicators
+    petrol_price = get_cached_petrol_price(year, month)
+    tension_score, headlines = get_cached_geopolitical_news()
 
     features = [
         [
@@ -245,15 +261,22 @@ def predict_price(
             rainfall_mm,
             deviation,
             cat,
+            petrol_price,
+            tension_score
         ]
     ]
+    
     base_price = model_gb.predict(features)[0] if model_gb else 0.0
     
-    if year > 2024:
-        inflation_rate = 0.065
-        return base_price * ((1 + inflation_rate) ** (year - 2024))
-    else:
-        return base_price
+    # We no longer apply an arbitrary 6.5% multiplier here, 
+    # because the new model natively learned inflation from historical petrol prices!
+    
+    return {
+        "price": base_price,
+        "petrol_price": petrol_price,
+        "tension_score": tension_score,
+        "headlines": headlines
+    }
 
 
 # ─── Sidebar ─────────────────────────────────────────────────────────────────
@@ -299,7 +322,7 @@ with st.sidebar:
     st.caption("Open-Meteo API (Free)")
 
 # ─── Load Data ───────────────────────────────────────────────────────────────
-model_data = load_hybrid_model()
+model_data = load_model_v2()
 tn_prices = load_price_data()
 tn_agri = load_agri_data()
 lat, lon = TN_DISTRICTS[district]
@@ -309,17 +332,17 @@ weather = get_weather(lat, lon)
 rainfall_mm = weather["monthly_rain"] if weather else 50.0
 
 # ─── Predict ─────────────────────────────────────────────────────────────────
-predicted_price = predict_price(model_data, commodity, month, year, rainfall_mm)
+prediction_result = predict_price(model_data, commodity, month, year, rainfall_mm)
 
 # ─── HEADER ──────────────────────────────────────────────────────────────────
 st.markdown("# 🌾 Tamil Nadu Agricultural Price Prediction Dashboard")
 st.caption(
-    f"Powered by Gradient Boosting ML + Open-Meteo Live Weather | {district}, Tamil Nadu"
+    f"Powered by Gradient Boosting ML + Open-Meteo Live Weather + Live Macro Indicators | {district}, Tamil Nadu"
 )
 st.markdown("---")
 
 # ─── ROW 1: Key Metrics ──────────────────────────────────────────────────────
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
     st.metric("🌡️ Current Temp", f"{weather['current_temp']}°C" if weather else "N/A")
@@ -328,24 +351,32 @@ with col2:
         "🌧️ Weekly Rainfall", f"{weather['weekly_rain']:.1f} mm" if weather else "N/A"
     )
 with col3:
-    st.metric("📍 District", district)
-with col4:
     season_map = {0: "🌧️ Monsoon", 1: "☁️ Post-Monsoon", 2: "❄️ Winter", 3: "☀️ Summer"}
-    s = (
-        0
-        if month in [6, 7, 8, 9]
-        else (1 if month in [10, 11] else (2 if month in [12, 1, 2] else 3))
-    )
+    s = 0 if month in [6, 7, 8, 9] else (1 if month in [10, 11] else (2 if month in [12, 1, 2] else 3))
     st.metric("🗓️ Season", season_map[s])
+with col4:
+    if prediction_result:
+        st.metric("⛽ Fuel Trend", f"Rs. {prediction_result['petrol_price']:.1f}")
+    else:
+        st.metric("⛽ Fuel Trend", "N/A")
+with col5:
+    if prediction_result:
+        st.metric("🌐 Global Tension", f"{prediction_result['tension_score']:.0f}/100")
+    else:
+        st.metric("🌐 Global Tension", "N/A")
 
 st.markdown("---")
+
+if prediction_result and prediction_result.get("headlines"):
+    st.info(f"**📰 Latest Market-Impacting News:** {prediction_result['headlines'][0]}")
 
 # ─── ROW 2: Price Prediction + Weather ──────────────────────────────────────
 col_pred, col_weather = st.columns([1, 1])
 
 with col_pred:
     st.markdown("### 💰 Price Prediction")
-    if predicted_price:
+    if prediction_result:
+        predicted_price = prediction_result["price"]
         st.markdown(
             f"""
         <div class="price-display">
