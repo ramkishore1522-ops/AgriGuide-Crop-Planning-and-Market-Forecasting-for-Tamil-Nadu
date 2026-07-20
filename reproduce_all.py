@@ -1,37 +1,77 @@
+"""
+Master Pipeline Orchestrator
+============================
+Author: [Your Name/Institution]
+Description: This master script runs the entire machine learning pipeline sequentially.
+It ensures reproducibility of all data processing, modeling, and evaluation steps
+required for the publication.
+
+Outputs:
+  - Updates all files in `reports/` and `visualizations/` directories.
+"""
+
 import subprocess
 import sys
 import time
+import logging
+from typing import List
 
-def run_script(script_name):
-    print(f"\n{'='*60}")
-    print(f"RUNNING: {script_name}")
-    print(f"{'='*60}")
-    start = time.time()
+# ── Configure Professional Logging ─────────────────────────────────────────────
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[logging.StreamHandler(sys.stdout)],
+)
+
+
+def run_script(script_name: str) -> None:
+    """
+    Executes a given python script via subprocess and logs its runtime.
+
+    Args:
+        script_name (str): The relative path to the script inside the 'scripts/' directory.
+
+    Raises:
+        SystemExit: If the script fails, it exits the pipeline to prevent cascading errors.
+    """
+    logging.info("=" * 60)
+    logging.info(f"RUNNING: {script_name}")
+    logging.info("=" * 60)
+
+    start_time = time.time()
     try:
+        # Execute the script in a separate process
         subprocess.run([sys.executable, f"scripts/{script_name}"], check=True)
-        print(f"[SUCCESS] {script_name} completed in {time.time() - start:.1f}s")
+        elapsed = time.time() - start_time
+        logging.info(f"[SUCCESS] {script_name} completed in {elapsed:.1f}s")
     except subprocess.CalledProcessError as e:
-        print(f"[ERROR] {script_name} failed with exit code {e.returncode}")
+        logging.error(f"[FAILED] {script_name} exited with code {e.returncode}")
         sys.exit(1)
 
-def main():
-    print("STARTING COMPLETE REPRODUCIBILITY PIPELINE...")
-    
-    scripts = [
-        "error_analysis.py",
-        "per_commodity_pipeline.py",
-        "hybrid_model.py",
-        "conformal_prediction.py",
-        "granger_causality.py",
-        "generate_paper_tables.py"
+
+def main() -> None:
+    """
+    Main orchestration function to run the machine learning pipeline sequentially.
+    """
+    logging.info("STARTING COMPLETE REPRODUCIBILITY PIPELINE...")
+
+    scripts: List[str] = [
+        "03_evaluation/error_analysis.py",
+        "02_modeling/per_commodity_pipeline.py",
+        "02_modeling/hybrid_model.py",
+        "03_evaluation/conformal_prediction.py",
+        "03_evaluation/granger_causality.py",
+        "03_evaluation/generate_paper_tables.py",
     ]
-    
+
     for script in scripts:
         run_script(script)
-        
-    print("\n" + "="*60)
-    print("PIPELINE COMPLETE. ALL RESULTS GENERATED SUCCESSFULLY.")
-    print("Check the 'reports/' and 'visualizations/' directories.")
+
+    logging.info("=" * 60)
+    logging.info("PIPELINE COMPLETE. ALL RESULTS GENERATED SUCCESSFULLY.")
+    logging.info("Please check the 'reports/' and 'visualizations/' directories.")
+
 
 if __name__ == "__main__":
     main()

@@ -22,8 +22,14 @@ Thumbs.db
 .vscode/
 
 # Ignore large model files and raw datasets (Best practice for GitHub)
-models/
-data/raw/
-data/processed/
-data/quality_checked/
-data/intermediate/
+data/raw/*
+data/processed/*
+data/intermediate/*
+
+# Ignore all quality checked data EXCEPT the lightweight dashboard CSV
+data/quality_checked/*
+!data/quality_checked/tn_retail_prices_dashboard.csv
+
+# Ignore all heavy model files EXCEPT the deployed hybrid model
+models/*
+!models/tn_no_lag_model.joblib

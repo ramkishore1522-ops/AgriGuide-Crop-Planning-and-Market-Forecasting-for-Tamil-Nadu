@@ -6,8 +6,7 @@ seaborn==0.13.2
 joblib==1.5.2
 requests==2.32.5
 xgboost==3.3.0
-lightgbm==4.7.0
-shap==0.52.0
 scipy==1.18.0
 statsmodels==0.14.6
-torch==2.13.0
+streamlit==1.42.0
+plotly==6.0.0

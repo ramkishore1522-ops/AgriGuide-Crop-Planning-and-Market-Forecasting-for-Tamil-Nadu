@@ -63,17 +63,94 @@ To quantify uncertainty, we utilize split conformal prediction. The dataset is p
 \subsection{Predictive Performance}
 The models were evaluated using an expanding-window cross-validation strategy to simulate real-world forecasting constraints. The hybrid stacking ensemble demonstrated superior performance, effectively bridging the gap between ARIMA's trend-following and XGBoost's shock-responsiveness. 
 
-% INSERT TABLE: tab:hybrid from latex_tables.tex
+% Global Model Performance Comparison (5-Fold TimeSeries CV)
+\begin{table}[htbp]
+\centering
+\caption{Global Model Performance Comparison (5-Fold TimeSeries CV)}
+\label{tab:model_comp}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Model & R2 & RMSE & MAPE & Significance \\
+\midrule
+Naive Baseline & -0.050 $\pm$ 0.044 & 58.32 $\pm$ 10.27 & 83.10\% $\pm$ 8.70\% & (p=4.962e-03) \\
+Ridge & -0.023 $\pm$ 0.029 & 57.38 $\pm$ 8.82 & 88.35\% $\pm$ 10.82\% & (p=2.338e-55) \\
+Random Forest & 0.925 $\pm$ 0.048 & 14.45 $\pm$ 4.51 & 12.07\% $\pm$ 2.87\% & (Best Model) \\
+XGBoost & 0.921 $\pm$ 0.055 & 14.64 $\pm$ 4.66 & 11.61\% $\pm$ 3.17\% & (p=3.622e-14) \\
+LightGBM & 0.921 $\pm$ 0.053 & 14.72 $\pm$ 4.58 & 11.90\% $\pm$ 2.89\% & (p=3.668e-18) \\
+LSTM (Keras) & 0.008 $\pm$ 0.779 & 51.56 $\pm$ 19.54 & 66.37\% $\pm$ 39.95\% & (p=4.143e-09) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Per-Commodity Model Performance (Best Model, 5-Fold TimeSeriesSplit)
+\begin{table}[htbp]
+\centering
+\caption{Per-Commodity Model Performance (Best Model, 5-Fold TimeSeriesSplit)}
+\label{tab:per_commodity}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+Commodity & Best Model & R$^2$ & R$^2$ (std) & RMSE & MAE & MAPE (\%) \\
+\midrule
+Milk & Random Forest & -12.71 & 13.73 & 2.70 & 2.18 & 5.00 \\
+Onion & Random Forest & -0.08 & 0.55 & 11.57 & 8.62 & 26.57 \\
+Potato & LightGBM & -2.19 & 2.54 & 6.54 & 5.55 & 17.54 \\
+Rice & Ridge & -9.01 & 12.17 & 5.26 & 4.81 & 11.01 \\
+Sugar & XGBoost & -3.19 & 2.20 & 2.65 & 2.24 & 5.47 \\
+Tomato & LightGBM & -0.08 & 0.27 & 13.90 & 10.04 & 39.24 \\
+Wheat & Random Forest & -9.59 & 10.76 & 2.73 & 2.48 & 6.37 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Causal Analysis of Climate Impact}
 Granger causality tests revealed distinct vulnerabilities across commodity types. Highly perishable vegetables (Tomato, Onion, Potato) exhibited statistically significant ($p < 0.05$) lagged causal relationships with rainfall deviation. Conversely, staples (Rice, Wheat) showed no significant Granger causality from climate variables, likely due to massive storage infrastructures and government interventions like Minimum Support Prices (MSP) that buffer climate shocks.
 
-% INSERT TABLE: tab:granger from latex_tables.tex
+% Significant Granger Causality Results (p < 0.05)
+\begin{table}[htbp]
+\centering
+\caption{Significant Granger Causality Results (p $<$ 0.05)}
+\label{tab:granger}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Commodity & Climate Variable & Lag (months) & F-statistic & p-value \\
+\midrule
+Onion & rainfall\_mm & 1 & 5.15 & 0.025 \\
+Tomato & rainfall\_mm & 6 & 2.55 & 0.025 \\
+Potato & rainfall\_mm & 3 & 3.62 & 0.016 \\
+Potato & rainfall\_mm & 4 & 3.23 & 0.015 \\
+Potato & rainfall\_mm & 5 & 2.31 & 0.049 \\
+Potato & rainfall\_mm & 6 & 2.75 & 0.016 \\
+Potato & rainfall\_deviation & 1 & 3.94 & 0.050 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Uncertainty and Risk Assessment}
 The conformal prediction intervals provided critical insights into market volatility. The empirical coverage rates aligned closely with the target confidence levels ($90\%$ and $95\%$), validating the distribution-free approach. The interval widths quantified inherent predictability: Sugar and Milk exhibited tight intervals (low volatility), whereas Tomatoes required significantly wider intervals to maintain coverage, reflecting their acute sensitivity to monsoon disruptions.
 
-% INSERT TABLE: tab:conformal from latex_tables.tex
+% Conformal Prediction: Coverage and Interval Width
+\begin{table*}[htbp] % Used table* for spanning two columns
+\centering
+\caption{Conformal Prediction: Coverage and Interval Width}
+\label{tab:conformal}
+\small
+\begin{tabular}{lccccccccccc}
+\toprule
+Commodity & $n_{train}$ & $n_{cal}$ & $n_{test}$ & Point R$^2$ & Point RMSE & Cov 90\% & Width 90\% & $\hat{q}$ 90\% & Cov 95\% & Width 95\% & $\hat{q}$ 95\% \\
+\midrule
+Rice & 69 & 23 & 24 & -5.67 & 11.54 & 0.00 & 7.24 & 3.62 & 4.20 & 7.72 & 3.86 \\
+Wheat & 69 & 23 & 24 & -12.22 & 7.78 & 0.00 & 5.42 & 2.71 & 0.00 & 6.09 & 3.04 \\
+Onion & 69 & 23 & 24 & -1.13 & 13.76 & 75.00 & 36.01 & 18.00 & 95.80 & 53.44 & 26.72 \\
+Tomato & 69 & 23 & 24 & -0.12 & 19.82 & 91.70 & 71.88 & 35.94 & 91.70 & 102.22 & 51.11 \\
+Potato & 69 & 23 & 24 & -0.41 & 6.97 & 83.30 & 19.53 & 9.77 & 83.30 & 19.77 & 9.88 \\
+Sugar & 69 & 23 & 24 & -1.95 & 3.06 & 54.20 & 5.30 & 2.65 & 62.50 & 5.78 & 2.89 \\
+Milk & 69 & 23 & 24 & -0.74 & 2.92 & 41.70 & 4.39 & 2.19 & 62.50 & 6.40 & 3.20 \\
+\bottomrule
+\end{tabular}
+\end{table*}
 
 \section{Conclusion}
 \label{sec:conclusion}
