@@ -113,7 +113,7 @@ MONTH_NAMES = [
 
 # ─── Load Resources ──────────────────────────────────────────────────────────
 @st.cache_resource(show_spinner=False)
-def load_model():
+def load_hybrid_model():
     """
     Loads the pre-trained Hybrid Model (Gradient Boosting + Ridge) and label encoder.
     Note: Cache busted to force loading the new Hybrid model.
@@ -298,7 +298,7 @@ with st.sidebar:
     st.caption("Open-Meteo API (Free)")
 
 # ─── Load Data ───────────────────────────────────────────────────────────────
-model_data = load_model()
+model_data = load_hybrid_model()
 tn_prices = load_price_data()
 tn_agri = load_agri_data()
 lat, lon = TN_DISTRICTS[district]
