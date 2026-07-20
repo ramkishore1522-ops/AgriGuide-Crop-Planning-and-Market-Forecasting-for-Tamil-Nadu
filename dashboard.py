@@ -225,8 +225,7 @@ def predict_price(
         season = 3
 
     is_monsoon = 1 if month in [6, 7, 8, 9] else 0
-    typical = {0: 200, 1: 150, 2: 30, 3: 50}
-    deviation = ((rainfall_mm - typical[season]) / max(typical[season], 1)) * 100
+    deviation = ((rainfall_mm - 50) / 50) * 100
     cat = 0 if rainfall_mm < 50 else (1 if rainfall_mm < 150 else 2)
 
     features = [

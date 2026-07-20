@@ -190,9 +190,7 @@ def predict(commodity, city_name, lat, lon, month, year):
         rainfall_mm = rainfall_map[season]
         print(f"  Using typical rainfall: {rainfall_mm}mm")
 
-    # Fix deviation calculation to match dashboard logic
-    typical = {0: 200, 1: 150, 2: 30, 3: 50}
-    rainfall_deviation = ((rainfall_mm - typical[season]) / max(typical[season], 1)) * 100
+    rainfall_deviation = ((rainfall_mm - 50) / 50) * 100
     rainfall_category = 0 if rainfall_mm < 50 else (1 if rainfall_mm < 150 else 2)
 
     features = [
