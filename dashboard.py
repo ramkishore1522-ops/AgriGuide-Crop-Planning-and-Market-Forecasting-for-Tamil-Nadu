@@ -112,14 +112,20 @@ MONTH_NAMES = [
 
 
 # ─── Load Resources ──────────────────────────────────────────────────────────
-@st.cache_resource
-def load_model() -> Dict[str, Any]:
+@st.cache_resource(show_spinner=False)
+def load_model():
     """
-    Loads the pre-trained machine learning model and label encoders.
-    Returns:
-        Dict[str, Any]: Dictionary containing the model and preprocessing objects.
+    Loads the pre-trained Hybrid Model (Gradient Boosting + Ridge) and label encoder.
+    Note: Cache busted to force loading the new Hybrid model.
     """
-    return joblib.load(MODELS_DIR / "tn_no_lag_model.joblib")
+    try:
+        PROJECT_ROOT = Path(__file__).parent
+        model_path = PROJECT_ROOT / "models" / "tn_no_lag_model.joblib"
+        model_data = joblib.load(model_path)
+        return model_data
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        return None
 
 
 @st.cache_data
