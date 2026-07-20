@@ -223,9 +223,13 @@ def predict(commodity, city_name, lat, lon, month, year):
 
     base_price = model_gb.predict(features)[0] if model_gb else 0.0
     
-    # We remove the 6.5% inflation rate extrapolation here because our new model 
-    # uses the petrol_price feature to dynamically learn the inflation rate!
-    price = base_price
+    # Tree-based models cannot extrapolate mathematically.
+    # We must apply the historical inflation rate for future years.
+    if year > 2024:
+        inflation_rate = 0.065
+        price = base_price * ((1 + inflation_rate) ** (year - 2024))
+    else:
+        price = base_price
 
     season_names = ["Monsoon", "Post-monsoon", "Winter", "Summer"]
 

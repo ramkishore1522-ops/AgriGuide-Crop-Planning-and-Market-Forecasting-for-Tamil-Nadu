@@ -264,15 +264,18 @@ def predict_price(
             petrol_price,
             tension_score
         ]
-    ]
-    
     base_price = model_gb.predict(features)[0] if model_gb else 0.0
     
-    # We no longer apply an arbitrary 6.5% multiplier here, 
-    # because the new model natively learned inflation from historical petrol prices!
+    # Tree-based models cannot mathematically extrapolate beyond their training data range.
+    # We MUST apply a historical inflation multiplier for future years, or the price will flatline.
+    if year > 2024:
+        inflation_rate = 0.065
+        final_price = base_price * ((1 + inflation_rate) ** (year - 2024))
+    else:
+        final_price = base_price
     
     return {
-        "price": base_price,
+        "price": final_price,
         "petrol_price": petrol_price,
         "tension_score": tension_score,
         "headlines": headlines
@@ -368,7 +371,7 @@ with col5:
 st.markdown("---")
 
 if prediction_result and prediction_result.get("headlines"):
-    st.info(f"**📰 Latest Market-Impacting News:** {prediction_result['headlines'][0]}")
+    st.info(f"**📰 LIVE Global News (Today):** {prediction_result['headlines'][0]}")
 
 # ─── ROW 2: Price Prediction + Weather ──────────────────────────────────────
 col_pred, col_weather = st.columns([1, 1])
