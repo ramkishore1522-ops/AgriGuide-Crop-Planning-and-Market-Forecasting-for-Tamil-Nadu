@@ -86,11 +86,11 @@ To quantify uncertainty, we utilize split conformal prediction. The dataset is p
 The models were evaluated using an expanding-window cross-validation strategy to simulate real-world forecasting constraints. The hybrid stacking ensemble demonstrated superior performance, effectively bridging the gap between ARIMA's trend-following and XGBoost's shock-responsiveness. 
 
 % Global Model Performance Comparison (5-Fold TimeSeries CV)
-\begin{table*}[htbp]
+\begin{table}[htbp]
 \centering
 \caption{Global Model Performance Comparison (5-Fold TimeSeries CV)}
 \label{tab:model_comp}
-\small
+\resizebox{\columnwidth}{!}{
 \begin{tabular}{lcccc}
 \toprule
 Model & R2 & RMSE & MAPE & Significance \\
@@ -103,14 +103,15 @@ LightGBM & 0.921 $\pm$ 0.053 & 14.72 $\pm$ 4.58 & 11.90\% $\pm$ 2.89\% & (p=3.66
 LSTM (Keras) & 0.008 $\pm$ 0.779 & 51.56 $\pm$ 19.54 & 66.37\% $\pm$ 39.95\% & (p=4.143e-09) \\
 \bottomrule
 \end{tabular}
-\end{table*}
+}
+\end{table}
 
 % Per-Commodity Model Performance (Best Model, 5-Fold TimeSeriesSplit)
-\begin{table*}[htbp]
+\begin{table}[htbp]
 \centering
 \caption{Per-Commodity Model Performance (Best Model, 5-Fold TimeSeriesSplit)}
 \label{tab:per_commodity}
-\small
+\resizebox{\columnwidth}{!}{
 \begin{tabular}{lcccccc}
 \toprule
 Commodity & Best Model & R$^2$ & R$^2$ (std) & RMSE & MAE & MAPE (\%) \\
@@ -124,17 +125,18 @@ Tomato & LightGBM & -0.08 & 0.27 & 13.90 & 10.04 & 39.24 \\
 Wheat & Random Forest & -9.59 & 10.76 & 2.73 & 2.48 & 6.37 \\
 \bottomrule
 \end{tabular}
-\end{table*}
+}
+\end{table}
 
 \subsection{Causal Analysis of Climate Impact}
 Granger causality tests revealed distinct vulnerabilities across commodity types. Highly perishable vegetables (Tomato, Onion, Potato) exhibited statistically significant ($p < 0.05$) lagged causal relationships with rainfall deviation. Conversely, staples (Rice, Wheat) showed no significant Granger causality from climate variables, likely due to massive storage infrastructures and government interventions like Minimum Support Prices (MSP) that buffer climate shocks.
 
 % Significant Granger Causality Results (p < 0.05)
-\begin{table*}[htbp]
+\begin{table}[htbp]
 \centering
 \caption{Significant Granger Causality Results (p $<$ 0.05)}
 \label{tab:granger}
-\small
+\resizebox{\columnwidth}{!}{
 \begin{tabular}{lcccc}
 \toprule
 Commodity & Climate Variable & Lag (months) & F-statistic & p-value \\
@@ -148,7 +150,8 @@ Potato & rainfall\_mm & 6 & 2.75 & 0.016 \\
 Potato & rainfall\_deviation & 1 & 3.94 & 0.050 \\
 \bottomrule
 \end{tabular}
-\end{table*}
+}
+\end{table}
 
 \subsection{Uncertainty and Risk Assessment}
 The conformal prediction intervals provided critical insights into market volatility. The empirical coverage rates aligned closely with the target confidence levels ($90\%$ and $95\%$), validating the distribution-free approach. The interval widths quantified inherent predictability: Sugar and Milk exhibited tight intervals (low volatility), whereas Tomatoes required significantly wider intervals to maintain coverage, reflecting their acute sensitivity to monsoon disruptions.
