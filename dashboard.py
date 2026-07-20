@@ -113,10 +113,9 @@ MONTH_NAMES = [
 
 # ─── Load Resources ──────────────────────────────────────────────────────────
 @st.cache_resource(show_spinner=False)
-def load_hybrid_model():
+def load_model_v2():
     """
-    Loads the pre-trained Hybrid Model (Gradient Boosting + Ridge) and label encoder.
-    Note: Cache busted to force loading the new Hybrid model.
+    Loads the pre-trained Gradient Boosting model and label encoder.
     """
     try:
         PROJECT_ROOT = Path(__file__).parent
@@ -248,11 +247,13 @@ def predict_price(
             cat,
         ]
     ]
-    features_scaled = scaler.transform(features)
-    if model_gb and model_ridge:
-        return 0.5 * model_gb.predict(features)[0] + 0.5 * model_ridge.predict(features_scaled)[0]
+    base_price = model_gb.predict(features)[0] if model_gb else 0.0
+    
+    if year > 2024:
+        inflation_rate = 0.065
+        return base_price * ((1 + inflation_rate) ** (year - 2024))
     else:
-        return model_gb.predict(features)[0]
+        return base_price
 
 
 # ─── Sidebar ─────────────────────────────────────────────────────────────────

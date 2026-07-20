@@ -208,13 +208,13 @@ def predict(commodity, city_name, lat, lon, month, year):
         ]
     ]
 
-    features_scaled = scaler.transform(features)
+    base_price = model_gb.predict(features)[0] if model_gb else 0.0
     
-    if model_gb and model_ridge:
-        price = 0.5 * model_gb.predict(features)[0] + 0.5 * model_ridge.predict(features_scaled)[0]
+    if year > 2024:
+        inflation_rate = 0.065
+        price = base_price * ((1 + inflation_rate) ** (year - 2024))
     else:
-        # Fallback if old model is loaded
-        price = model_gb.predict(features)[0]
+        price = base_price
 
     season_names = ["Monsoon", "Post-monsoon", "Winter", "Summer"]
 
