@@ -15,6 +15,14 @@
 \usepackage{hyperref}
 \usepackage{float}
 
+\makeatletter
+\newcommand{\linebreakand}{%
+  \end{@IEEEauthorhalign}
+  \hfill\mbox{}\par
+  \mbox{}\hfill\begin{@IEEEauthorhalign}
+}
+\makeatother
+
 \begin{document}
 
 \title{AgriGuide: Crop Planning and Market Forecasting for Tamil Nadu%
@@ -30,7 +38,7 @@ Chennai, India}
 \IEEEauthorblockA{\textit{Dept. of Mathematics, School of Advanced Sciences} \\
 \textit{Vellore Institute of Technology}\\
 Chennai, India}
-\and
+\linebreakand
 \IEEEauthorblockN{Dr. Basua Debananda}
 \IEEEauthorblockA{\textit{Dept. of Mathematics, School of Advanced Sciences} \\
 \textit{Vellore Institute of Technology}\\
