@@ -15,20 +15,20 @@ Instead, it uses:
 
 ## MODEL PERFORMANCE
             Model   MAE  RMSE  MAPE     R2   CV_R2
-    Random Forest 12.02 16.61 11.96 0.9386  0.9329
-Gradient Boosting 11.59 16.97 11.97 0.9360  0.9259
-Linear Regression 50.25 66.67 74.59 0.0111 -0.0168
- Ridge Regression 50.25 66.68 74.56 0.0110 -0.0165
+Gradient Boosting  9.50 13.65  9.71 0.9585 -0.9532
+    Random Forest 10.40 14.72 10.79 0.9518 -1.0446
+Linear Regression 50.29 66.68 74.69 0.0109 -0.4627
+ Ridge Regression 50.29 66.69 74.61 0.0107 -0.4615
 
 
 ## TIME-SERIES VALIDATION SUMMARY
             Model  MAE_mean  MAE_std  MAE_ci95  RMSE_mean  RMSE_std  RMSE_ci95  MAPE_mean  MAPE_std  MAPE_ci95  R2_mean  R2_std  R2_ci95
-Gradient Boosting   11.0295   2.3699    1.8963    16.9361    3.8951     3.1167    12.9502    2.5020     2.0020   0.9205  0.0257   0.0206
-  Hybrid Ensemble   26.3942   4.5259    3.6215    34.7613    5.7514     4.6021    41.5044    4.3255     3.4611   0.6688  0.0487   0.0390
-Linear Regression   46.8486   7.1989    5.7603    60.9192    8.6679     6.9357    78.0863    6.1295     4.9047  -0.0153  0.0240   0.0192
+Gradient Boosting   10.3249   2.1874    1.7503    15.7231    3.7412     2.9936    12.1074    2.0706     1.6568   0.9306  0.0261   0.0209
+  Hybrid Ensemble   26.1792   4.4150    3.5327    34.6074    5.5709     4.4577    41.4725    4.5030     3.6032   0.6716  0.0460   0.0368
+Linear Regression   46.8217   7.2172    5.7749    60.8338    8.7293     6.9849    78.5842    6.0651     4.8531  -0.0121  0.0193   0.0155
        Naive Mean   47.4551   7.3208    5.8579    62.4087   10.0706     8.0582    72.5271    5.6252     4.5011  -0.0602  0.0356   0.0285
-    Random Forest   10.8293   2.2410    1.7931    16.4851    3.8942     3.1160    12.5260    1.8883     1.5109   0.9247  0.0248   0.0198
- Ridge Regression   46.8475   7.2043    5.7646    60.9089    8.6825     6.9475    78.1301    6.0769     4.8625  -0.0149  0.0235   0.0188
+    Random Forest   10.2485   1.9954    1.5967    15.6818    3.7317     2.9859    11.7687    1.5963     1.2773   0.9312  0.0254   0.0203
+ Ridge Regression   46.8204   7.2162    5.7742    60.8357    8.7350     6.9895    78.5520    6.0373     4.8308  -0.0122  0.0193   0.0154
 
 
 ## ABLATION STUDY
@@ -40,24 +40,23 @@ climate_plus_lag_plus_seasonality Linear Regression Linear Regression    2.5127 
 
 
 ## OPTIONAL BASELINE COMPARISON
-  Model  MAE_mean  RMSE_mean  MAPE_mean   R2_mean
-  ARIMA   10.5191    12.8719    19.7787  -13.1548
-Prophet    5.5780     5.9671     6.4127 -206.9753
-   LSTM   11.6872    12.4600    12.2292 -158.5058
+                      Model  MAE_mean  RMSE_mean  MAPE_mean   R2_mean
+                      ARIMA   10.5191    12.8719    19.7787  -13.1548
+                    Prophet    5.5780     5.9671     6.4127 -206.9753
+                       LSTM   11.6872    12.4600    12.2292 -158.5058
+Temporal Fusion Transformer       NaN        NaN        NaN       NaN
 
 
 ## FEATURE IMPORTANCE
-             Feature  Importance
-   commodity_encoded    0.925133
-        petrol_price    0.045050
-          year_trend    0.022046
-         rainfall_mm    0.002841
-               month    0.002181
-geopolitical_tension    0.001441
-  rainfall_deviation    0.000978
-              season    0.000212
-          is_monsoon    0.000081
-   rainfall_category    0.000037
+           Feature  Importance
+ commodity_encoded    0.927929
+        year_trend    0.064743
+       rainfall_mm    0.003231
+             month    0.002654
+rainfall_deviation    0.001090
+            season    0.000188
+        is_monsoon    0.000134
+ rainfall_category    0.000033
 
 
 ## USE CASE
