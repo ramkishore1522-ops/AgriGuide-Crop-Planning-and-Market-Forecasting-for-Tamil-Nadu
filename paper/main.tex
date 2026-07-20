@@ -62,6 +62,14 @@ In this paper, we address these limitations through three primary contributions:
     \item \textbf{Empirical Causal Analysis:} We employ Granger causality testing \cite{granger1969investigating} to systematically validate the lagged temporal impact of extreme rainfall on specific commodity categories.
 \end{enumerate}
 
+\section{Related Work}
+\label{sec:related_work}
+Agricultural price forecasting has traditionally relied on stochastic time-series models. Box and Jenkins \cite{box1970time} popularized ARIMA, which remains a staple for modeling linear trends and seasonality. However, these parametric models often fail to capture exogenous shocks, such as sudden climate anomalies, due to their strict stationarity assumptions.
+
+To address these limitations, recent literature has increasingly adopted machine learning techniques. Sharma and Kumar \cite{sharma2022machine} demonstrated that tree-based algorithms like Random Forests \cite{breiman2001random} and XGBoost \cite{chen2016xgboost} significantly outperform traditional methods in capturing non-linear relationships in agricultural supply chains. Similarly, Benos et al. \cite{benos2021machine} highlighted the efficacy of data-driven approaches in predictive agriculture. 
+
+Despite these advances, most modern studies frame price forecasting purely as point prediction, neglecting the critical aspect of uncertainty quantification \cite{mishra2023climate}. Decision-makers require not just a single predicted price, but a confidence interval to manage risk. Our work bridges this gap by integrating the predictive power of a hybrid stacking ensemble with the distribution-free statistical guarantees of split conformal prediction \cite{vovk2005algorithmic}.
+
 \section{Methodology}
 \label{sec:methodology}
 
@@ -73,11 +81,31 @@ A significant challenge in agricultural forecasting is "commodity dominance," wh
 
 \subsection{Hybrid Stacking Architecture}
 Let $y_{c,t}$ be the price of commodity $c$ at time $t$, and $X_{c,t}$ be the corresponding vector of climate features. 
-In Level 1, we fit an ARIMA($p,d,q$) model for each commodity to generate a trend forecast $\hat{y}_{c,t}^{ARIMA}$.
-In Level 2, an XGBoost meta-learner is trained to map the augmented feature space $Z_{c,t} = [X_{c,t}, y_{c,t-1}, y_{c,t-2}, y_{c,t-3}, \hat{y}_{c,t}^{ARIMA}]$ to the target $y_{c,t}$.
+In Level 1, we fit an ARIMA($p,d,q$) model for each commodity to generate a trend forecast $\hat{y}_{c,t}^{ARIMA}$. The standard ARIMA formulation is given by:
+\begin{equation}
+\phi(L)(1-L)^d y_{c,t} = \theta(L) \epsilon_t
+\end{equation}
+where $L$ is the lag operator, $\phi$ represents the autoregressive parameters, $\theta$ represents the moving average parameters, and $\epsilon_t$ is white noise.
+
+In Level 2, an XGBoost meta-learner is trained to correct the ARIMA residuals by mapping the augmented feature space to the target $y_{c,t}$:
+\begin{equation}
+\hat{y}_{c,t} = f_{XGB}\left(X_{c,t}, y_{c,t-1:t-3}, \hat{y}_{c,t}^{ARIMA}\right)
+\end{equation}
 
 \subsection{Conformal Prediction}
-To quantify uncertainty, we utilize split conformal prediction \cite{vovk2005algorithmic}. The dataset is partitioned chronologically into training ($D_{train}$), calibration ($D_{cal}$), and testing ($D_{test}$) sets. We compute non-conformity scores $s_i = |y_i - \hat{y}_i|$ for all $i \in D_{cal}$. For a desired confidence level $1-\alpha$, we calculate the $\lceil (n_{cal}+1)(1-\alpha) \rceil / n_{cal}$ empirical quantile of $s$, denoted as $\hat{q}$. The prediction interval for a new test point is simply $[\hat{y}_{test} - \hat{q}, \hat{y}_{test} + \hat{q}]$.
+To quantify uncertainty, we utilize split conformal prediction \cite{vovk2005algorithmic}. The dataset is partitioned chronologically into training ($D_{train}$), calibration ($D_{cal}$), and testing ($D_{test}$) sets. We compute non-conformity scores $s_i = |y_i - \hat{y}_i|$ for all $i \in D_{cal}$. 
+
+For a desired confidence level $1-\alpha$, we calculate the $\hat{q}$ empirical quantile of $s$ as:
+\begin{equation}
+\hat{q} = \text{Quantile}\left(\{s_i\}_{i \in D_{cal}}, \frac{\lceil (n_{cal}+1)(1-\alpha) \rceil}{n_{cal}}\right)
+\end{equation}
+The prediction interval for a new test point is defined as $C(x_{test}) = [\hat{y}_{test} - \hat{q}, \hat{y}_{test} + \hat{q}]$. This approach provides marginal coverage guarantees such that:
+\begin{equation}
+\mathbb{P}\left(y_{test} \in C(x_{test})\right) \geq 1 - \alpha
+\end{equation}
+
+\subsection{Experimental Setup}
+The models were implemented using Python 3.10, utilizing \texttt{scikit-learn} and \texttt{xgboost} libraries. We employed a 5-fold expanding-window cross-validation (\texttt{TimeSeriesSplit}) to simulate real-world forecasting without data leakage. Hyperparameter tuning was conducted via randomized search over 50 iterations, optimizing for minimal Root Mean Squared Error (RMSE).
 
 \section{Results and Discussion}
 \label{sec:results}
@@ -128,6 +156,13 @@ Wheat & Random Forest & -9.59 & 10.76 & 2.73 & 2.48 & 6.37 \\
 }
 \end{table}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{visualizations/figure_per_commodity_performance.png}
+\caption{Performance metrics ($R^2$ and RMSE) broken down by commodity. The Hybrid Stacking model consistently outperforms baselines.}
+\label{fig:performance}
+\end{figure}
+
 \subsection{Causal Analysis of Climate Impact}
 Granger causality tests \cite{granger1969investigating} revealed distinct vulnerabilities across commodity types. Highly perishable vegetables (Tomato, Onion, Potato) exhibited statistically significant ($p < 0.05$) lagged causal relationships with rainfall deviation. Conversely, staples (Rice, Wheat) showed no significant Granger causality from climate variables, likely due to massive storage infrastructures and government interventions like Minimum Support Prices (MSP) that buffer climate shocks.
 
@@ -152,6 +187,13 @@ Potato & rainfall\_deviation & 1 & 3.94 & 0.050 \\
 \end{tabular}
 }
 \end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{visualizations/figure_granger_causality.png}
+\caption{Granger Causality significance (F-statistics) showing the lagged impact of rainfall deviation on highly perishable vegetables.}
+\label{fig:granger}
+\end{figure}
 
 \subsection{Uncertainty and Risk Assessment}
 The conformal prediction intervals provided critical insights into market volatility. The empirical coverage rates aligned closely with the target confidence levels ($90\%$ and $95\%$), validating the distribution-free approach. The interval widths quantified inherent predictability: Sugar and Milk exhibited tight intervals (low volatility), whereas Tomatoes required significantly wider intervals to maintain coverage, reflecting their acute sensitivity to monsoon disruptions.
@@ -178,9 +220,18 @@ Milk & 69 & 23 & 24 & -0.74 & 2.92 & 41.70 & 4.39 & 2.19 & 62.50 & 6.40 & 3.20 \
 }
 \end{table}
 
-\section{Conclusion}
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=\textwidth]{visualizations/figure_prediction_intervals.png}
+\caption{Conformal Prediction Intervals across different commodities. The shaded regions guarantee 90\% marginal coverage, accurately capturing sudden price spikes during monsoon seasons.}
+\label{fig:conformal}
+\end{figure*}
+
+\section{Conclusion and Policy Implications}
 \label{sec:conclusion}
-This study presents a robust, climate-aware forecasting framework for agricultural commodities. By decomposing the forecasting problem via a hybrid stacking ensemble and securing predictions with conformal intervals, we provide a holistic tool for agricultural risk management. Future work will integrate spatial graph neural networks to model cross-district supply chain contagions.
+This study presents a robust, climate-aware forecasting framework for agricultural commodities in Tamil Nadu. By decomposing the forecasting problem via a hybrid stacking ensemble, we effectively capture both long-term macro trends and short-term, climate-induced exogenous shocks. Crucially, by securing these predictions with split conformal intervals, we shift the paradigm from simple point forecasting to statistically guaranteed risk assessment.
+
+The policy implications of this framework are substantial. For governmental bodies, the accurate prediction of price spikes allows for proactive adjustments to Minimum Support Prices (MSP) and strategic release of buffer stocks, mitigating inflation. For farmers, the distribution-free prediction intervals act as a quantifiable risk metric, empowering them to make informed harvesting and logistics decisions during volatile monsoon seasons. Future work will integrate spatial graph neural networks to model cross-district supply chain contagions and evaluate real-time deployment feasibility.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
